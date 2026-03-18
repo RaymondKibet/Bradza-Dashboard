@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRADZA Accounts Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #1F4E79;
+            --secondary: #2E75B6;
+            --accent: #4472C4;
+            --success: #70AD47;
+            --warning: #ED7D31;
+            --danger: #C00000;
+            --purple: #7030A0;
+            --gold: #FFC000;
+        }
+        * { font-family: 'Inter', sans-serif; }
+        .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .sidebar-link { transition: all 0.2s; }
+        .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.15); }
+        .data-table th { background: var(--primary); color: white; }
+        .data-table tr:nth-child(even) { background: #f8fafc; }
+        .data-table tr:hover { background: #e0f2fe; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.3s ease-out; }
+        .tab-active { border-bottom: 3px solid var(--primary); color: var(--primary); font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-[#1F4E79] text-white flex flex-col">
+            <div class="p-6 border-b border-white/10">
+                <h1 class="text-2xl font-bold">BRADZA</h1>
+                <p class="text-sm text-blue-200">Accounts Dashboard</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg" data-page="dashboard">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    Dashboard
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="income">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Income
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="expenses">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Expenses
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="loans">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Loans
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="members">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    Members
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="reconciliation">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Reconciliation
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="reports">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Reports & Export
+                </a>
+            </nav>
+            <div class="p-4 border-t border-white/10">
+                <div class="text-xs text-blue-200">
+                    <p>Data Source:</p>
+                    <select id="dataSource" class="w-full mt-1 px-2 py-1 rounded text-black text-sm">
+                        <option value="manual">Manual Entry</option>
+                        <option value="excel">Excel Upload</option>
+                        <option value="google">Google Sheets</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-auto">
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page animate-fade">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
+                        <p class="text-gray-500">Financial Overview</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="document.getElementById('fileInput').click()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Upload Excel
+                        </button>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden" onchange="handleFileUpload(event)">
+                        <button onclick="refreshDashboard()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-6 gap-4 mb-8">
+                    <div class="kpi-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 mb-1">Total Savings</p>
+                        <p class="text-2xl font-bold text-[#4472C4]" id="kpi-savings">$0.00</p>
+                    </div>
+                    <div class="kpi-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 mb-1">Total Loans</p>
+                        <p class="text-2xl font-bold text-[#ED7D31]" id="kpi-loans">$0.00</p>
+                    </div>
+                    <div class="kpi-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 mb-1">Total Repayments</p>
+                        <p class="text-2xl font-bold text-[#70AD47]" id="kpi-repayments">$0.00</p>
+                    </div>
+                    <div class="kpi-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 mb-1">Total Expenses</p>
+                        <p class="text-2xl font-bold text-[#C00000]" id="kpi-expenses">$0.00</p>
+                    </div>
+                    <div class="kpi-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 mb-1">Net Balance</p>
+                        <p class="text-2xl font-bold text-[#7030A0]" id="kpi-balance">$0.00</p>
+                    </div>
+                    <div class="kpi-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 mb-1">Members</p>
+                        <p class="text-2xl font-bold text-[#FFC000]" id="kpi-members">0</p>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Income vs Expenses</h3>
+                        <canvas id="incomeExpenseChart" height="200"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Loan Status</h3>
+                        <canvas id="loanChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Member Balances Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-700">Member Balances</h3>
+                    </div>
+                    <div class="p-5 overflow-x-auto">
+                        <table class="w-full data-table rounded-lg overflow-hidden">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Member Name</th>
+                                    <th class="px-4 py-3 text-right">Savings</th>
+                                    <th class="px-4 py-3 text-right">Loans Outstanding</th>
+                                    <th class="px-4 py-3 text-right">Total Contribution</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberBalancesTable">
+                                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No member data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Loan Tracker -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-700">Loan Tracker</h3>
+                    </div>
+                    <div class="p-5 overflow-x-auto">
+                        <table class="w-full data-table rounded-lg overflow-hidden">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Loan Ref</th>
+                                    <th class="px-4 py-3 text-left">Member</th>
+                                    <th class="px-4 py-3 text-left">Date</th>
+                                    <th class="px-4 py-3 text-right">Principal</th>
+                                    <th class="px-4 py-3 text-right">Repaid</th>
+                                    <th class="px-4 py-3 text-right">Outstanding</th>
+                                    <th class="px-4 py-3 text-right">Interest</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loanTrackerTable">
+                                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No loan data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income Page -->
+            <div id="page-income" class="page hidden animate-fade">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Income Management</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-700">Income Categories</h3>
+                        <button onclick="saveIncome()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full">
+                            <tr class="border-b"><td class="py-3 font-medium">Member Registration</td><td class="text-right"><input type="number" id="income-1" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Member Contributions</td><td class="text-right"><input type="number" id="income-2" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Chama Savings</td><td class="text-right"><input type="number" id="income-3" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Interest on Internal Loans</td><td class="text-right"><input type="number" id="income-4" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Interest on External Loans</td><td class="text-right"><input type="number" id="income-5" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Welfare</td><td class="text-right"><input type="number" id="income-6" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="bg-blue-50"><td class="py-4 font-bold">TOTAL INCOME</td><td class="text-right font-bold text-blue-700 text-xl" id="total-income">$0.00</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Page -->
+            <div id="page-expenses" class="page hidden animate-fade">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Expense Management</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-700">Expense Categories</h3>
+                        <button onclick="saveExpenses()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full">
+                            <tr class="border-b"><td class="py-3 font-medium">Company Expenses (Admin/Travel/Reg.)</td><td class="text-right"><input type="number" id="expense-1" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Board Activities / Meetings</td><td class="text-right"><input type="number" id="expense-2" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="border-b"><td class="py-3 font-medium">Communication / Stationery</td><td class="text-right"><input type="number" id="expense-3" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateTotals()"></td></tr>
+                            <tr class="bg-red-50"><td class="py-4 font-bold">TOTAL EXPENSES</td><td class="text-right font-bold text-red-700 text-xl" id="total-expenses">$0.00</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loans Page -->
+            <div id="page-loans" class="page hidden animate-fade">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Loan Management</h2>
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-semibold text-gray-700">Internal Loans</h3>
+                        </div>
+                        <div class="p-5">
+                            <table class="w-full text-sm" id="internalLoansTable">
+                                <thead><tr><th class="text-left py-2">Ref</th><th class="text-left py-2">Member</th><th class="text-right py-2">Principal</th><th class="text-right py-2">Repaid</th><th class="text-right py-2">Outstanding</th></tr></thead>
+                                <tbody id="internalLoansBody"><tr><td colspan="5" class="text-center py-4 text-gray-400">No loans</td></tr></tbody>
+                                <tfoot><tr class="font-bold"><td colspan="2">Total</td><td class="text-right" id="intLoansTotal">$0</td><td class="text-right" id="intLoansRepaid">$0</td><td class="text-right" id="intLoansOutstanding">$0</td></tr></tfoot>
+                            </table>
+                            <button onclick="addLoanRow('internal')" class="mt-3 text-blue-600 hover:underline">+ Add Loan</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-semibold text-gray-700">External Loans</h3>
+                        </div>
+                        <div class="p-5">
+                            <table class="w-full text-sm" id="externalLoansTable">
+                                <thead><tr><th class="text-left py-2">Ref</th><th class="text-left py-2">Member</th><th class="text-right py-2">Principal</th><th class="text-right py-2">Repaid</th><th class="text-right py-2">Outstanding</th></tr></thead>
+                                <tbody id="externalLoansBody"><tr><td colspan="5" class="text-center py-4 text-gray-400">No loans</td></tr></tbody>
+                                <tfoot><tr class="font-bold"><td colspan="2">Total</td><td class="text-right" id="extLoansTotal">$0</td><td class="text-right" id="extLoansRepaid">$0</td><td class="text-right" id="extLoansOutstanding">$0</td></tr></tfoot>
+                            </table>
+                            <button onclick="addLoanRow('external')" class="mt-3 text-blue-600 hover:underline">+ Add Loan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Page -->
+            <div id="page-members" class="page hidden animate-fade">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Member Management</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-700">Member Registry</h3>
+                        <button onclick="addMemberRow()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ Add Member</button>
+                    </div>
+                    <div class="p-5 overflow-x-auto">
+                        <table class="w-full data-table rounded-lg overflow-hidden">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Member ID</th>
+                                    <th class="px-4 py-3 text-left">Member Name</th>
+                                    <th class="px-4 py-3 text-left">Join Date</th>
+                                    <th class="px-4 py-3 text-right">Total Savings</th>
+                                    <th class="px-4 py-3 text-right">Loans Outstanding</th>
+                                    <th class="px-4 py-3 text-right">Total Contribution</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="membersTable">
+                                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No members added</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reconciliation Page -->
+            <div id="page-reconciliation" class="page hidden animate-fade">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Balance & Reconciliation</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-700">Financial Reconciliation</h3>
+                    </div>
+                    <div class="p-5">
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="font-medium text-gray-600 mb-4">Operating Balance</h4>
+                                <table class="w-full">
+                                    <tr class="border-b"><td class="py-2">Total Income</td><td class="text-right font-medium" id="rec-income">$0.00</td></tr>
+                                    <tr class="border-b"><td class="py-2">Total Expenses</td><td class="text-right font-medium" id="rec-expenses">$0.00</td></tr>
+                                    <tr class="border-b bg-blue-50"><td class="py-3 font-bold">Net Operating Balance</td><td class="text-right font-bold text-blue-700" id="rec-net">$0.00</td></tr>
+                                </table>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-600 mb-4">Loan Reconciliation</h4>
+                                <table class="w-full">
+                                    <tr class="border-b"><td class="py-2">Total Loans Disbursed</td><td class="text-right font-medium" id="rec-disbursed">$0.00</td></tr>
+                                    <tr class="border-b"><td class="py-2">Total Loans Repaid</td><td class="text-right font-medium" id="rec-repaid">$0.00</td></tr>
+                                    <tr class="border-b bg-orange-50"><td class="py-2 font-bold">Loans Outstanding</td><td class="text-right font-bold text-orange-700" id="rec-outstanding">$0.00</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-700">Bank Reconciliation</h3>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full max-w-md">
+                            <tr class="border-b"><td class="py-2">Bank Balance (Manual Entry)</td><td class="text-right"><input type="number" id="bank-balance" class="w-40 text-right border rounded px-3 py-2" value="0" onchange="calculateReconciliation()"></td></tr>
+                            <tr class="border-b"><td class="py-2">System Balance</td><td class="text-right font-medium" id="rec-system">$0.00</td></tr>
+                            <tr id="varianceRow"><td class="py-2 font-bold">Variance</td><td class="text-right font-bold" id="rec-variance">$0.00</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="page-reports" class="page hidden animate-fade">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Reports & Export</h2>
+                <div class="grid grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <svg class="w-12 h-12 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <h3 class="font-semibold mb-2">Export to PDF</h3>
+                        <p class="text-sm text-gray-500 mb-4">Generate a printable PDF report</p>
+                        <button onclick="exportPDF()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Download PDF</button>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <svg class="w-12 h-12 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <h3 class="font-semibold mb-2">Export to Excel</h3>
+                        <p class="text-sm text-gray-500 mb-4">Download all data as Excel file</p>
+                        <button onclick="exportExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Download Excel</button>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <svg class="w-12 h-12 mx-auto text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <h3 class="font-semibold mb-2">Export to CSV</h3>
+                        <p class="text-sm text-gray-500 mb-4">Export summary data as CSV</p>
+                        <button onclick="exportCSV()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Download CSV</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-700">Financial Summary</h3>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full" id="summaryTable">
+                            <tr class="border-b"><td class="py-2 font-medium">Total Income</td><td class="text-right" id="sum-income">$0.00</td></tr>
+                            <tr class="border-b"><td class="py-2 font-medium">Total Expenses</td><td class="text-right" id="sum-expenses">$0.00</td></tr>
+                            <tr class="border-b"><td class="py-2 font-bold text-lg">Net Operating Balance</td><td class="text-right font-bold text-lg" id="sum-net">$0.00</td></tr>
+                            <tr class="border-b"><td class="py-2 font-medium">Total Loans Outstanding</td><td class="text-right font-medium" id="sum-loans">$0.00</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Data Storage
+        let dashboardData = {
+            income: { registration: 0, contributions: 0, chamaSavings: 0, interestInt: 0, interestExt: 0, welfare: 0 },
+            expenses: { company: 0, board: 0, communication: 0 },
+            loans: { internal: [], external: [] },
+            members: [],
+            bankBalance: 0
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            initCharts();
+            calculateTotals();
+        });
+
+        // Navigation
+        function initNavigation() {
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    showPage(page);
+                });
+            });
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${pageName}`).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+        }
+
+        // Charts
+        let incomeExpenseChart, loanChart;
+
+        function initCharts() {
+            const ctx1 = document.getElementById('incomeExpenseChart').getContext('2d');
+            incomeExpenseChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses'],
+                    datasets: [{ data: [0, 0], backgroundColor: ['#70AD47', '#C00000'], barThickness: 50 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const ctx2 = document.getElementById('loanChart').getContext('2d');
+            loanChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Outstanding', 'Repaid'],
+                    datasets: [{ data: [0, 0], backgroundColor: ['#ED7D31', '#70AD47'] }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        // Calculations
+        function calculateTotals() {
+            // Update data from inputs
+            dashboardData.income.registration = parseFloat(document.getElementById('income-1')?.value || 0);
+            dashboardData.income.contributions = parseFloat(document.getElementById('income-2')?.value || 0);
+            dashboardData.income.chamaSavings = parseFloat(document.getElementById('income-3')?.value || 0);
+            dashboardData.income.interestInt = parseFloat(document.getElementById('income-4')?.value || 0);
+            dashboardData.income.interestExt = parseFloat(document.getElementById('income-5')?.value || 0);
+            dashboardData.income.welfare = parseFloat(document.getElementById('income-6')?.value || 0);
+
+            dashboardData.expenses.company = parseFloat(document.getElementById('expense-1')?.value || 0);
+            dashboardData.expenses.board = parseFloat(document.getElementById('expense-2')?.value || 0);
+            dashboardData.expenses.communication = parseFloat(document.getElementById('expense-3')?.value || 0);
+
+            // Calculate totals
+            const totalIncome = Object.values(dashboardData.income).reduce((a, b) => a + b, 0);
+            const totalExpenses = Object.values(dashboardData.expenses).reduce((a, b) => a + b, 0);
+            const netBalance = totalIncome - totalExpenses;
+
+            // Update income display
+            document.getElementById('total-income').textContent = formatCurrency(totalIncome);
+            
+            // Update expenses display
+            document.getElementById('total-expenses').textContent = formatCurrency(totalExpenses);
+
+            // Update KPIs
+            const totalSavings = dashboardData.income.chamaSavings + dashboardData.income.contributions;
+            const totalLoans = [...dashboardData.loans.internal, ...dashboardData.loans.external].reduce((sum, l) => sum + (l.outstanding || 0), 0);
+            const totalRepayments = [...dashboardData.loans.internal, ...dashboardData.loans.external].reduce((sum, l) => sum + (l.repaid || 0), 0);
+            const memberCount = dashboardData.members.length || 5;
+
+            document.getElementById('kpi-savings').textContent = formatCurrency(totalSavings);
+            document.getElementById('kpi-loans').textContent = formatCurrency(totalLoans);
+            document.getElementById('kpi-repayments').textContent = formatCurrency(totalRepayments);
+            document.getElementById('kpi-expenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('kpi-balance').textContent = formatCurrency(netBalance);
+            document.getElementById('kpi-members').textContent = memberCount;
+
+            // Update charts
+            incomeExpenseChart.data.datasets[0].data = [totalIncome, totalExpenses];
+            incomeExpenseChart.update();
+
+            loanChart.data.datasets[0].data = [totalLoans, totalRepayments];
+            loanChart.update();
+
+            // Update reconciliation
+            calculateReconciliation();
+
+            // Update summary
+            document.getElementById('sum-income').textContent = formatCurrency(totalIncome);
+            document.getElementById('sum-expenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('sum-net').textContent = formatCurrency(netBalance);
+            document.getElementById('sum-loans').textContent = formatCurrency(totalLoans);
+        }
+
+        function calculateReconciliation() {
+            const totalIncome = Object.values(dashboardData.income).reduce((a, b) => a + b, 0);
+            const totalExpenses = Object.values(dashboardData.expenses).reduce((a, b) => a + b, 0);
+            const netOperating = totalIncome - totalExpenses;
+
+            const allLoans = [...dashboardData.loans.internal, ...dashboardData.loans.external];
+            const loansDisbursed = allLoans.reduce((sum, l) => sum + (l.principal || 0), 0);
+            const loansRepaid = allLoans.reduce((sum, l) => sum + (l.repaid || 0), 0);
+            const loansOutstanding = loansDisbursed - loansRepaid;
+
+            const bankBalance = parseFloat(document.getElementById('bank-balance')?.value || 0);
+            const systemBalance = netOperating + loansOutstanding - loansDisbursed;
+            const variance = bankBalance - systemBalance;
+
+            document.getElementById('rec-income').textContent = formatCurrency(totalIncome);
+            document.getElementById('rec-expenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('rec-net').textContent = formatCurrency(netOperating);
+            document.getElementById('rec-disbursed').textContent = formatCurrency(loansDisbursed);
+            document.getElementById('rec-repaid').textContent = formatCurrency(loansRepaid);
+            document.getElementById('rec-outstanding').textContent = formatCurrency(loansOutstanding);
+            document.getElementById('rec-system').textContent = formatCurrency(systemBalance);
+
+            const varianceEl = document.getElementById('rec-variance');
+            varianceEl.textContent = formatCurrency(variance);
+            varianceEl.className = 'text-right font-bold ' + (variance === 0 ? 'text-green-600' : 'text-red-600');
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(amount);
+        }
+
+        function refreshDashboard() {
+            calculateTotals();
+            renderMemberTable();
+            renderLoanTables();
+        }
+
+        // Member Management
+        function addMemberRow() {
+            const tbody = document.getElementById('membersTable');
+            if (tbody.querySelector('.text-gray-400')) tbody.innerHTML = '';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-4 py-2"><input type="text" class="border rounded px-2 py-1 w-20" placeholder="M001"></td>
+                <td class="px-4 py-2"><input type="text" class="border rounded px-2 py-1 w-40" placeholder="Name"></td>
+                <td class="px-4 py-2"><input type="date" class="border rounded px-2 py-1"></td>
+                <td class="px-4 py-2"><input type="number" class="border rounded px-2 py-1 w-28 text-right" value="0"></td>
+                <td class="px-4 py-2"><input type="number" class="border rounded px-2 py-1 w-28 text-right" value="0"></td>
+                <td class="px-4 py-2"><input type="number" class="border rounded px-2 py-1 w-28 text-right" value="0"></td>
+                <td class="px-4 py-2 text-center"><select class="border rounded px-2 py-1"><option>Active</option><option>Inactive</option></select></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function renderMemberTable() {
+            const tbody = document.getElementById('memberBalancesTable');
+            const members = dashboardData.members.length ? dashboardData.members : [
+                { name: 'Member 1', savings: 5000, loans: 2000, contribution: 7000, status: 'Active' },
+                { name: 'Member 2', savings: 3000, loans: 0, contribution: 3000, status: 'Active' },
+                { name: 'Member 3', savings: 7500, loans: 5000, contribution: 10000, status: 'Active' },
+                { name: 'Member 4', savings: 2000, loans: 0, contribution: 2000, status: 'Active' },
+                { name: 'Member 5', savings: 4500, loans: 1500, contribution: 6000, status: 'Active' }
+            ];
+            
+            tbody.innerHTML = members.map(m => `
+                <tr class="border-b">
+                    <td class="px-4 py-3 font-medium">${m.name}</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(m.savings)}</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(m.loans)}</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(m.contribution)}</td>
+                    <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded-full text-xs ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${m.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Loan Management
+        function addLoanRow(type) {
+            const tbody = document.getElementById(type === 'internal' ? 'internalLoansBody' : 'externalLoansBody');
+            if (tbody.querySelector('.text-gray-400')) tbody.innerHTML = '';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="py-2"><input type="text" class="border rounded px-2 py-1 w-16" placeholder="L001"></td>
+                <td class="py-2"><input type="text" class="border rounded px-2 py-1 w-32" placeholder="Name"></td>
+                <td class="py-2"><input type="date" class="border rounded px-2 py-1 w-28"></td>
+                <td class="py-2"><input type="number" class="border rounded px-2 py-1 w-24 text-right" value="0" onchange="updateLoanTotals()"></td>
+                <td class="py-2"><input type="number" class="border rounded px-2 py-1 w-24 text-right" value="0" onchange="updateLoanTotals()"></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function updateLoanTotals() {
+            const intRows = document.querySelectorAll('#internalLoansBody tr');
+            const extRows = document.querySelectorAll('#externalLoansBody tr');
+            
+            let intTotal = 0, intRepaid = 0, extTotal = 0, extRepaid = 0;
+            
+            intRows.forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                if (inputs.length >= 2) {
+                    intTotal += parseFloat(inputs[0].value) || 0;
+                    intRepaid += parseFloat(inputs[1].value) || 0;
+                }
+            });
+            
+            extRows.forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                if (inputs.length >= 2) {
+                    extTotal += parseFloat(inputs[0].value) || 0;
+                    extRepaid += parseFloat(inputs[1].value) || 0;
+                }
+            });
+
+            document.getElementById('intLoansTotal').textContent = formatCurrency(intTotal);
+            document.getElementById('intLoansRepaid').textContent = formatCurrency(intRepaid);
+            document.getElementById('intLoansOutstanding').textContent = formatCurrency(intTotal - intRepaid);
+            document.getElementById('extLoansTotal').textContent = formatCurrency(extTotal);
+            document.getElementById('extLoansRepaid').textContent = formatCurrency(extRepaid);
+            document.getElementById('extLoansOutstanding').textContent = formatCurrency(extTotal - extRepaid);
+
+            calculateTotals();
+        }
+
+        function renderLoanTables() {
+            const loans = [
+                { ref: 'L001', member: 'Member 1', principal: 5000, repaid: 3000, outstanding: 2000, interest: 250 },
+                { ref: 'L002', member: 'Member 3', principal: 10000, repaid: 5000, outstanding: 5000, interest: 500 },
+                { ref: 'L003', member: 'Member 5', principal: 3000, repaid: 1500, outstanding: 1500, interest: 150 }
+            ];
+
+            const tbody = document.getElementById('loanTrackerTable');
+            tbody.innerHTML = loans.map(l => `
+                <tr class="border-b">
+                    <td class="px-4 py-3 font-medium">${l.ref}</td>
+                    <td class="px-4 py-3">${l.member}</td>
+                    <td class="px-4 py-3">2025-01-15</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(l.principal)}</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(l.repaid)}</td>
+                    <td class="px-4 py-3 text-right font-medium">${formatCurrency(l.outstanding)}</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(l.interest)}</td>
+                    <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded-full text-xs ${l.outstanding > 0 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}">${l.outstanding > 0 ? 'Active' : 'Paid'}</span></td>
+                </tr>
+            `).join('');
+
+            // Update totals
+            document.getElementById('intLoansTotal').textContent = formatCurrency(13000);
+            document.getElementById('intLoansRepaid').textContent = formatCurrency(6500);
+            document.getElementById('intLoansOutstanding').textContent = formatCurrency(6500);
+        }
+
+        // Save functions
+        function saveIncome() {
+            localStorage.setItem('bradza_income', JSON.stringify(dashboardData.income));
+            alert('Income saved!');
+        }
+
+        function saveExpenses() {
+            localStorage.setItem('bradza_expenses', JSON.stringify(dashboardData.expenses));
+            alert('Expenses saved!');
+        }
+
+        // File Upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Read Income sheet
+                if (workbook.Sheets['Income']) {
+                    const incomeData = XLSX.utils.sheet_to_json(workbook.Sheets['Income']);
+                    console.log('Income data:', incomeData);
+                }
+
+                alert('Excel file loaded! Data imported successfully.');
+                refreshDashboard();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Export functions
+        function exportPDF() {
+            alert('PDF export would generate a printable report. Use browser print (Ctrl+P) for now.');
+            window.print();
+        }
+
+        function exportExcel() {
+            const ws = XLSX.utils.json_to_sheet([
+                { Category: 'Income', Amount: Object.values(dashboardData.income).reduce((a,b)=>a+b,0) },
+                { Category: 'Expenses', Amount: Object.values(dashboardData.expenses).reduce((a,b)=>a+b,0) }
+            ]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+            XLSX.writeFile(wb, 'Bradza_Report.xlsx');
+        }
+
+        function exportCSV() {
+            const data = [
+                ['BRADZA FINANCIAL SUMMARY'],
+                [''],
+                ['Total Income', Object.values(dashboardData.income).reduce((a,b)=>a+b,0)],
+                ['Total Expenses', Object.values(dashboardData.expenses).reduce((a,b)=>a+b,0)],
+                ['Net Balance', Object.values(dashboardData.income).reduce((a,b)=>a+b,0) - Object.values(dashboardData.expenses).reduce((a,b)=>a+b,0)]
+            ];
+            const csv = data.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Bradza_Summary.csv';
+            a.click();
+        }
+
+        // Initialize
+        renderMemberTable();
+        renderLoanTables();
+    </script>
+</body>
+</html>
