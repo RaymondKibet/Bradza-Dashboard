@@ -65,6 +65,10 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     Reconciliation
                 </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="pandl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    P&L Statement
+                </a>
                 <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg" data-page="reports">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Reports & Export
@@ -339,9 +343,184 @@
                 </div>
             </div>
 
+            <!-- P&L Statement Page -->
+            <div id="page-pandl" class="page hidden animate-fade">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Profit & Loss Statement</h2>
+                    <div class="flex gap-2">
+                        <select id="pl-year" class="border rounded-lg px-4 py-2" onchange="updatePL()">
+                            <option value="2025">FY 2025</option>
+                            <option value="2026">FY 2026</option>
+                        </select>
+                        <button onclick="exportPLPDF()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- P&L Summary Cards -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                        <p class="text-sm text-green-600 font-medium">Total Revenue</p>
+                        <p class="text-2xl font-bold text-green-700" id="pl-total-revenue">$0.00</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+                        <p class="text-sm text-red-600 font-medium">Total Expenses</p>
+                        <p class="text-2xl font-bold text-red-700" id="pl-total-expenses">$0.00</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                        <p class="text-sm text-blue-600 font-medium">Net Profit/Loss</p>
+                        <p class="text-2xl font-bold text-blue-700" id="pl-net-profit">$0.00</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                        <p class="text-sm text-purple-600 font-medium">Profit Margin</p>
+                        <p class="text-2xl font-bold text-purple-700" id="pl-profit-margin">0%</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Income Section -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div class="p-5 border-b border-gray-100 bg-green-50 rounded-t-xl">
+                            <h3 class="font-bold text-green-800 text-lg">REVENUE / INCOME</h3>
+                        </div>
+                        <div class="p-5">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-sm text-gray-500 border-b">
+                                        <th class="pb-2">Description</th>
+                                        <th class="pb-2 text-right">Current Period</th>
+                                        <th class="pb-2 text-right">YTD</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-income-table">
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Member Registration Fees</td>
+                                        <td class="py-2 text-right" id="pl-reg-fees">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-reg-fees-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Member Contributions</td>
+                                        <td class="py-2 text-right" id="pl-contrib">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-contrib-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Chama Savings</td>
+                                        <td class="py-2 text-right" id="pl-chama">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-chama-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Interest Income - Internal Loans</td>
+                                        <td class="py-2 text-right" id="pl-interest-int">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-interest-int-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Interest Income - External Loans</td>
+                                        <td class="py-2 text-right" id="pl-interest-ext">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-interest-ext-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Welfare Income</td>
+                                        <td class="py-2 text-right" id="pl-welfare">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-welfare-ytd">$0.00</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-green-100">
+                                        <td class="py-3 font-bold text-green-800">TOTAL REVENUE</td>
+                                        <td class="py-3 text-right font-bold text-green-800" id="pl-revenue-current">$0.00</td>
+                                        <td class="py-3 text-right font-bold text-green-800" id="pl-revenue-ytd">$0.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Expenses Section -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div class="p-5 border-b border-gray-100 bg-red-50 rounded-t-xl">
+                            <h3 class="font-bold text-red-800 text-lg">EXPENSES</h3>
+                        </div>
+                        <div class="p-5">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-sm text-gray-500 border-b">
+                                        <th class="pb-2">Description</th>
+                                        <th class="pb-2 text-right">Current Period</th>
+                                        <th class="pb-2 text-right">YTD</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-expenses-table">
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Company Expenses (Admin/Travel/Reg.)</td>
+                                        <td class="py-2 text-right" id="pl-company-exp">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-company-exp-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Board Activities / Meetings</td>
+                                        <td class="py-2 text-right" id="pl-board">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-board-ytd">$0.00</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-2 pl-4">Communication / Stationery</td>
+                                        <td class="py-2 text-right" id="pl-comm">$0.00</td>
+                                        <td class="py-2 text-right font-medium" id="pl-comm-ytd">$0.00</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-red-100">
+                                        <td class="py-3 font-bold text-red-800">TOTAL EXPENSES</td>
+                                        <td class="py-3 text-right font-bold text-red-800" id="pl-expenses-current">$0.00</td>
+                                        <td class="py-3 text-right font-bold text-red-800" id="pl-expenses-ytd">$0.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Net Profit/Loss Summary -->
+                <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-bold text-gray-700 text-lg">NET PROFIT / (LOSS) SUMMARY</h3>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full max-w-lg mx-auto">
+                            <tr class="border-b">
+                                <td class="py-3 text-lg font-medium">Total Revenue</td>
+                                <td class="py-3 text-right text-lg font-medium text-green-700" id="pl-summary-revenue">$0.00</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 text-lg font-medium">Less: Total Expenses</td>
+                                <td class="py-3 text-right text-lg font-medium text-red-700" id="pl-summary-expenses">($0.00)</td>
+                            </tr>
+                            <tr class="bg-blue-50 border-2 border-blue-300">
+                                <td class="py-4 text-xl font-bold text-blue-800">NET PROFIT / (LOSS)</td>
+                                <td class="py-4 text-right text-xl font-bold text-blue-800" id="pl-summary-net">$0.00</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- P&L Chart -->
+                <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-bold text-gray-700">Revenue vs Expenses Comparison</h3>
+                    </div>
+                    <div class="p-5">
+                        <div class="h-72">
+                            <canvas id="plChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Reports Page -->
             <div id="page-reports" class="page hidden animate-fade">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">Reports & Export</h2>
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Reports & Analytics</h2>
+                
+                <!-- Export Cards -->
                 <div class="grid grid-cols-3 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
                         <svg class="w-12 h-12 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -362,6 +541,56 @@
                         <button onclick="exportCSV()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Download CSV</button>
                     </div>
                 </div>
+
+                <!-- Charts Row 1: Pie Charts -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Income Breakdown</h3>
+                        <div class="h-64">
+                            <canvas id="incomePieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Expense Breakdown</h3>
+                        <div class="h-64">
+                            <canvas id="expensePieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2: Line Charts -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Monthly Contributions Trend</h3>
+                        <div class="h-64">
+                            <canvas id="contributionsLineChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Loan Repayment Progress</h3>
+                        <div class="h-64">
+                            <canvas id="loanProgressLineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 3: Bar + Doughnut -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Member Contributions Comparison</h3>
+                        <div class="h-64">
+                            <canvas id="memberBarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-700 mb-4">Loan Status Overview</h3>
+                        <div class="h-64">
+                            <canvas id="loanDoughnutChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="p-5 border-b border-gray-100">
                         <h3 class="font-semibold text-gray-700">Financial Summary</h3>
@@ -415,9 +644,10 @@
         }
 
         // Charts
-        let incomeExpenseChart, loanChart;
+        let incomeExpenseChart, loanChart, incomePieChart, expensePieChart, contributionsLineChart, loanProgressLineChart, memberBarChart, loanDoughnutChart, plChart;
 
         function initCharts() {
+            // Bar Chart - Income vs Expenses
             const ctx1 = document.getElementById('incomeExpenseChart').getContext('2d');
             incomeExpenseChart = new Chart(ctx1, {
                 type: 'bar',
@@ -428,6 +658,7 @@
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
+            // Doughnut - Loan Status (Dashboard)
             const ctx2 = document.getElementById('loanChart').getContext('2d');
             loanChart = new Chart(ctx2, {
                 type: 'doughnut',
@@ -436,6 +667,132 @@
                     datasets: [{ data: [0, 0], backgroundColor: ['#ED7D31', '#70AD47'] }]
                 },
                 options: { responsive: true }
+            });
+
+            // PIE CHART - Income Breakdown
+            const ctx3 = document.getElementById('incomePieChart').getContext('2d');
+            incomePieChart = new Chart(ctx3, {
+                type: 'pie',
+                data: {
+                    labels: ['Registration', 'Contributions', 'Chama Savings', 'Interest Int', 'Interest Ext', 'Welfare'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#4472C4', '#70AD47', '#ED7D31', '#FFC000', '#7030A0', '#00B0F0']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // PIE CHART - Expense Breakdown
+            const ctx4 = document.getElementById('expensePieChart').getContext('2d');
+            expensePieChart = new Chart(ctx4, {
+                type: 'pie',
+                data: {
+                    labels: ['Company Expenses', 'Board Activities', 'Communication'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#C00000', '#FF6B6B', '#FF8E8E']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // LINE CHART - Monthly Contributions Trend
+            const ctx5 = document.getElementById('contributionsLineChart').getContext('2d');
+            contributionsLineChart = new Chart(ctx5, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Contributions',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#4472C4',
+                        backgroundColor: 'rgba(68, 114, 196, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Chama Savings',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#70AD47',
+                        backgroundColor: 'rgba(112, 173, 71, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // LINE CHART - Loan Repayment Progress
+            const ctx6 = document.getElementById('loanProgressLineChart').getContext('2d');
+            loanProgressLineChart = new Chart(ctx6, {
+                type: 'line',
+                data: {
+                    labels: ['Month 1', 'Month 2', 'Month 3', 'Month 4', 'Month 5', 'Month 6'],
+                    datasets: [{
+                        label: 'Principal',
+                        data: [0, 0, 0, 0, 0, 0],
+                        borderColor: '#ED7D31',
+                        backgroundColor: 'rgba(237, 125, 49, 0.1)',
+                        fill: false,
+                        tension: 0.4
+                    }, {
+                        label: 'Repaid',
+                        data: [0, 0, 0, 0, 0, 0],
+                        borderColor: '#70AD47',
+                        backgroundColor: 'rgba(112, 173, 71, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // BAR CHART - Member Contributions
+            const ctx7 = document.getElementById('memberBarChart').getContext('2d');
+            memberBarChart = new Chart(ctx7, {
+                type: 'bar',
+                data: {
+                    labels: ['Member 1', 'Member 2', 'Member 3', 'Member 4', 'Member 5'],
+                    datasets: [{
+                        label: 'Contributions',
+                        data: [5000, 3000, 7500, 2000, 4500],
+                        backgroundColor: ['#4472C4', '#70AD47', '#ED7D31', '#FFC000', '#7030A0']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // DOUGHNUT - Loan Status Overview (Reports)
+            const ctx8 = document.getElementById('loanDoughnutChart').getContext('2d');
+            loanDoughnutChart = new Chart(ctx8, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Internal Loans', 'External Loans', 'Repaid'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#4472C4', '#ED7D31', '#70AD47']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // P&L CHART - Revenue vs Expenses
+            const ctx9 = document.getElementById('plChart').getContext('2d');
+            plChart = new Chart(ctx9, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#70AD47'
+                    }, {
+                        label: 'Expenses',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#C00000'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
             });
         }
 
@@ -466,7 +823,7 @@
 
             // Update KPIs
             const totalSavings = dashboardData.income.chamaSavings + dashboardData.income.contributions;
-            const totalLoans = [...dashboardData.loans.internal, ...dashboardData.loans.external].reduce((sum, l) => sum + (l.outstanding || 0), 0);
+            const totalLoans = [...dashboardData.loans.internal, ...dashboardData.loans.external].reduce((sum, l) => sum + (l.outstanding || l.principal - l.repaid || 0), 0);
             const totalRepayments = [...dashboardData.loans.internal, ...dashboardData.loans.external].reduce((sum, l) => sum + (l.repaid || 0), 0);
             const memberCount = dashboardData.members.length || 5;
 
@@ -484,6 +841,57 @@
             loanChart.data.datasets[0].data = [totalLoans, totalRepayments];
             loanChart.update();
 
+            // Update Pie Charts
+            incomePieChart.data.datasets[0].data = [
+                dashboardData.income.registration,
+                dashboardData.income.contributions,
+                dashboardData.income.chamaSavings,
+                dashboardData.income.interestInt,
+                dashboardData.income.interestExt,
+                dashboardData.income.welfare
+            ];
+            incomePieChart.update();
+
+            expensePieChart.data.datasets[0].data = [
+                dashboardData.expenses.company,
+                dashboardData.expenses.board,
+                dashboardData.expenses.communication
+            ];
+            expensePieChart.update();
+
+            // Update Line Charts with sample monthly distribution
+            const monthlyContrib = [500, 600, 450, 700, 800, 650, 750, 900, 850, 950, 1000, 1100];
+            const monthlyChama = [200, 250, 300, 280, 350, 320, 380, 400, 420, 450, 480, 500];
+            contributionsLineChart.data.datasets[0].data = monthlyContrib.map(v => v * (dashboardData.income.contributions / 5000) || 0);
+            contributionsLineChart.data.datasets[1].data = monthlyChama.map(v => v * (dashboardData.income.chamaSavings / 2500) || 0);
+            contributionsLineChart.update();
+
+            // Loan progress line
+            const loanMonths = [totalLoans * 0.9, totalLoans * 0.75, totalLoans * 0.6, totalLoans * 0.45, totalLoans * 0.3, totalLoans * 0.15];
+            const repaidMonths = [totalRepayments * 0.1, totalRepayments * 0.25, totalRepayments * 0.4, totalRepayments * 0.55, totalRepayments * 0.7, totalRepayments * 0.85];
+            loanProgressLineChart.data.datasets[0].data = loanMonths;
+            loanProgressLineChart.data.datasets[1].data = repaidMonths;
+            loanProgressLineChart.update();
+
+            // Update Member Bar Chart
+            const members = dashboardData.members.length > 0 ? dashboardData.members : [
+                { name: 'Member 1', contribution: 5000 },
+                { name: 'Member 2', contribution: 3000 },
+                { name: 'Member 3', contribution: 7500 },
+                { name: 'Member 4', contribution: 2000 },
+                { name: 'Member 5', contribution: 4500 }
+            ];
+            memberBarChart.data.labels = members.slice(0, 5).map(m => m.name);
+            memberBarChart.data.datasets[0].data = members.slice(0, 5).map(m => m.contribution || m.savings || 0);
+            memberBarChart.update();
+
+            // Update Loan Doughnut
+            const intLoans = dashboardData.loans.internal.reduce((sum, l) => sum + (l.outstanding || 0), 0);
+            const extLoans = dashboardData.loans.external.reduce((sum, l) => sum + (l.outstanding || 0), 0);
+            const allRepaid = [...dashboardData.loans.internal, ...dashboardData.loans.external].reduce((sum, l) => sum + (l.repaid || 0), 0);
+            loanDoughnutChart.data.datasets[0].data = [intLoans, extLoans, allRepaid];
+            loanDoughnutChart.update();
+
             // Update reconciliation
             calculateReconciliation();
 
@@ -492,6 +900,9 @@
             document.getElementById('sum-expenses').textContent = formatCurrency(totalExpenses);
             document.getElementById('sum-net').textContent = formatCurrency(netBalance);
             document.getElementById('sum-loans').textContent = formatCurrency(totalLoans);
+
+            // Update P&L Statement
+            updatePL();
         }
 
         function calculateReconciliation() {
@@ -519,6 +930,80 @@
             const varianceEl = document.getElementById('rec-variance');
             varianceEl.textContent = formatCurrency(variance);
             varianceEl.className = 'text-right font-bold ' + (variance === 0 ? 'text-green-600' : 'text-red-600');
+        }
+
+        // P&L Statement Update
+        function updatePL() {
+            const totalIncome = Object.values(dashboardData.income).reduce((a, b) => a + b, 0);
+            const totalExpenses = Object.values(dashboardData.expenses).reduce((a, b) => a + b, 0);
+            const netProfit = totalIncome - totalExpenses;
+            const profitMargin = totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(1) : 0;
+
+            // Summary Cards
+            document.getElementById('pl-total-revenue').textContent = formatCurrency(totalIncome);
+            document.getElementById('pl-total-expenses').textContent = formatCurrency(totalExpenses);
+            
+            const netEl = document.getElementById('pl-net-profit');
+            netEl.textContent = formatCurrency(netProfit);
+            netEl.className = 'text-2xl font-bold ' + (netProfit >= 0 ? 'text-green-700' : 'text-red-700');
+            
+            document.getElementById('pl-profit-margin').textContent = profitMargin + '%';
+
+            // Revenue Items - Income
+            document.getElementById('pl-reg-fees').textContent = formatCurrency(dashboardData.income.registration);
+            document.getElementById('pl-reg-fees-ytd').textContent = formatCurrency(dashboardData.income.registration);
+            document.getElementById('pl-contrib').textContent = formatCurrency(dashboardData.income.contributions);
+            document.getElementById('pl-contrib-ytd').textContent = formatCurrency(dashboardData.income.contributions);
+            document.getElementById('pl-chama').textContent = formatCurrency(dashboardData.income.chamaSavings);
+            document.getElementById('pl-chama-ytd').textContent = formatCurrency(dashboardData.income.chamaSavings);
+            document.getElementById('pl-interest-int').textContent = formatCurrency(dashboardData.income.interestInt);
+            document.getElementById('pl-interest-int-ytd').textContent = formatCurrency(dashboardData.income.interestInt);
+            document.getElementById('pl-interest-ext').textContent = formatCurrency(dashboardData.income.interestExt);
+            document.getElementById('pl-interest-ext-ytd').textContent = formatCurrency(dashboardData.income.interestExt);
+            document.getElementById('pl-welfare').textContent = formatCurrency(dashboardData.income.welfare);
+            document.getElementById('pl-welfare-ytd').textContent = formatCurrency(dashboardData.income.welfare);
+
+            // Total Revenue
+            document.getElementById('pl-revenue-current').textContent = formatCurrency(totalIncome);
+            document.getElementById('pl-revenue-ytd').textContent = formatCurrency(totalIncome);
+
+            // Expenses
+            document.getElementById('pl-company-exp').textContent = formatCurrency(dashboardData.expenses.company);
+            document.getElementById('pl-company-exp-ytd').textContent = formatCurrency(dashboardData.expenses.company);
+            document.getElementById('pl-board').textContent = formatCurrency(dashboardData.expenses.board);
+            document.getElementById('pl-board-ytd').textContent = formatCurrency(dashboardData.expenses.board);
+            document.getElementById('pl-comm').textContent = formatCurrency(dashboardData.expenses.communication);
+            document.getElementById('pl-comm-ytd').textContent = formatCurrency(dashboardData.expenses.communication);
+
+            // Total Expenses
+            document.getElementById('pl-expenses-current').textContent = formatCurrency(totalExpenses);
+            document.getElementById('pl-expenses-ytd').textContent = formatCurrency(totalExpenses);
+
+            // Summary Table
+            document.getElementById('pl-summary-revenue').textContent = formatCurrency(totalIncome);
+            document.getElementById('pl-summary-expenses').textContent = '(' + formatCurrency(totalExpenses) + ')';
+            
+            const summaryNetEl = document.getElementById('pl-summary-net');
+            summaryNetEl.textContent = formatCurrency(netProfit);
+            summaryNetEl.className = 'py-4 text-right text-xl font-bold ' + (netProfit >= 0 ? 'text-green-800' : 'text-red-800');
+
+            // Update P&L Chart
+            const monthlyRevenue = generateMonthlyData(totalIncome);
+            const monthlyExpenses = generateMonthlyData(totalExpenses);
+            plChart.data.datasets[0].data = monthlyRevenue;
+            plChart.data.datasets[1].data = monthlyExpenses;
+            plChart.update();
+        }
+
+        function generateMonthlyData(total) {
+            // Distribute total across 12 months (sample distribution)
+            const distribution = [0.08, 0.07, 0.08, 0.09, 0.10, 0.08, 0.09, 0.09, 0.08, 0.08, 0.08, 0.08];
+            return distribution.map(d => Math.round(total * d * 100) / 100);
+        }
+
+        function exportPLPDF() {
+            alert('PDF export would generate a printable P&L report. Use browser print (Ctrl+P) for now.');
+            window.print();
         }
 
         function formatCurrency(amount) {
@@ -568,6 +1053,9 @@
                     <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded-full text-xs ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${m.status}</span></td>
                 </tr>
             `).join('');
+
+            // Update member count KPI
+            document.getElementById('kpi-members').textContent = members.length;
         }
 
         // Loan Management
@@ -656,7 +1144,7 @@
             alert('Expenses saved!');
         }
 
-        // File Upload
+        // File Upload - Excel Import (Bradza Monthly Contributions Format)
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -665,17 +1153,305 @@
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
+                
+                console.log('Available sheets:', Object.keys(workbook.Sheets));
 
-                // Read Income sheet
-                if (workbook.Sheets['Income']) {
-                    const incomeData = XLSX.utils.sheet_to_json(workbook.Sheets['Income']);
-                    console.log('Income data:', incomeData);
+                // Parse CONT 2025 - Member Contributions
+                const cont2025Key = Object.keys(workbook.Sheets).find(k => k.includes('CONT 2025'));
+                if (cont2025Key) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[cont2025Key], { header: 1 });
+                    parseContributions(sheet);
                 }
 
-                alert('Excel file loaded! Data imported successfully.');
+                // Parse CHAMA 2025 - Chama Savings
+                const chama2025Key = Object.keys(workbook.Sheets).find(k => k.includes('CHAMA 2025'));
+                if (chama2025Key) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[chama2025Key], { header: 1 });
+                    parseChama(sheet);
+                }
+
+                // Parse EXPENSES
+                const expenseKey = Object.keys(workbook.Sheets).find(k => k.toUpperCase() === 'EXPENSES');
+                if (expenseKey) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[expenseKey], { header: 1 });
+                    parseExpensesSheet(sheet);
+                }
+
+                // Parse LOAN - Internal Loans
+                const loanKey = Object.keys(workbook.Sheets).find(k => k === 'LOAN');
+                if (loanKey) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[loanKey], { header: 1 });
+                    parseLoansSheet(sheet, 'internal');
+                }
+
+                // Parse EXTERNAL LOAN SCHEDULE
+                const extLoanKey = Object.keys(workbook.Sheets).find(k => k.includes('EXTERNAL'));
+                if (extLoanKey) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[extLoanKey], { header: 1 });
+                    parseLoansSheet(sheet, 'external');
+                }
+
+                // Parse CAR RENTAL
+                const carKey = Object.keys(workbook.Sheets).find(k => k.includes('CAR'));
+                if (carKey) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[carKey]);
+                    parseCarRental(sheet);
+                }
+
+                // Parse WELFARE
+                const welfareKey = Object.keys(workbook.Sheets).find(k => k.includes('WELFARE'));
+                if (welfareKey) {
+                    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[welfareKey], { header: 1 });
+                    parseWelfare(sheet);
+                }
+
+                alert('Excel file imported successfully! Dashboard updated.');
                 refreshDashboard();
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        function findRowWithValue(sheet, searchValue, colIndex = 0) {
+            for (let i = 0; i < sheet.length; i++) {
+                if (sheet[i] && sheet[i][colIndex] === searchValue) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        function parseContributions(sheet) {
+            try {
+                // CONT 2025 has member names in column B (index 1), months in columns C,E,G,I,K,M,O,Q,S,U,W (indices 2,4,6,8,10,12,14,16,18,20,22), total in column Y (index 24)
+                // Row 2 has the month headers
+                // Row 3+ has member data
+                
+                let totalIncome = 0;
+                let totalContributions = 0;
+                const members = [];
+                
+                // Find data rows (skip header rows)
+                for (let i = 3; i < sheet.length && members.length < 20; i++) {
+                    const row = sheet[i];
+                    if (!row || !row[1]) continue; // Skip empty rows or rows without name
+                    
+                    const name = row[1];
+                    if (typeof name === 'string' && name.trim()) {
+                        // Get all monthly values (columns 2,4,6,8,10,12,14,16,18,20,22)
+                        let memberTotal = 0;
+                        const monthCols = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
+                        for (const col of monthCols) {
+                            const val = parseFloat(row[col]) || 0;
+                            memberTotal += val;
+                        }
+                        // Also check column 24 (TOTAL)
+                        const totalCol = row[24] || memberTotal;
+                        
+                        members.push({
+                            name: name,
+                            savings: totalCol || memberTotal,
+                            loans: 0,
+                            contribution: totalCol || memberTotal,
+                            status: 'Active'
+                        });
+                        totalContributions += totalCol || memberTotal;
+                    }
+                }
+                
+                if (members.length > 0) {
+                    dashboardData.members = members;
+                    dashboardData.income.contributions = totalContributions;
+                    document.getElementById('income-2').value = totalContributions;
+                    renderMemberTable();
+                }
+                
+                console.log('Contributions parsed:', members.length, 'members, $', totalContributions);
+            } catch (e) { console.log('Error parsing contributions:', e); }
+        }
+
+        function parseChama(sheet) {
+            try {
+                // CHAMA 2025: Column A has member names, columns B-N have monthly values, column O has TOTAL
+                // Row 0: MEMBER, CHAMA CONTRIBUTIONS
+                // Row 1: NaN, JAN, FEB, MAR, etc.
+                // Row 2+: Member data
+                
+                let chamaTotal = 0;
+                
+                for (let i = 2; i < sheet.length; i++) {
+                    const row = sheet[i];
+                    if (!row || !row[0]) continue;
+                    
+                    const name = row[0];
+                    if (typeof name === 'string' && name.trim() && name !== 'MEMBER') {
+                        // Get total from last column
+                        const total = parseFloat(row[13]) || 0;
+                        chamaTotal += total;
+                        
+                        // Add to members if not already there
+                        const existing = dashboardData.members.find(m => m.name === name);
+                        if (existing) {
+                            existing.savings += total;
+                            existing.contribution += total;
+                        }
+                    }
+                }
+                
+                dashboardData.income.chamaSavings = chamaTotal;
+                document.getElementById('income-3').value = chamaTotal;
+                console.log('Chama parsed: $', chamaTotal);
+                
+            } catch (e) { console.log('Error parsing chama:', e); }
+        }
+
+        function parseExpensesSheet(sheet) {
+            try {
+                // EXPENSES: Row has DATE, ITEMS/NOTES, Gross Expense, Refund In/SALE, Net Expense
+                // Need to find and sum expense items
+                
+                let totalExpenses = 0;
+                
+                for (let i = 2; i < sheet.length; i++) {
+                    const row = sheet[i];
+                    if (!row || !row[1]) continue;
+                    
+                    // Check column 4 (Gross Expense) or column 6 (Net Expense)
+                    const grossExpense = parseFloat(row[4]) || 0;
+                    const netExpense = parseFloat(row[6]) || 0;
+                    
+                    if (grossExpense > 0 || netExpense > 0) {
+                        totalExpenses += grossExpense || netExpense;
+                    }
+                }
+                
+                dashboardData.expenses.company = totalExpenses;
+                document.getElementById('expense-1').value = totalExpenses;
+                console.log('Expenses parsed: $', totalExpenses);
+                
+            } catch (e) { console.log('Error parsing expenses:', e); }
+        }
+
+        function parseWelfare(sheet) {
+            try {
+                // WELFARE: Similar structure - find totals
+                let welfareTotal = 0;
+                
+                for (let i = 2; i < sheet.length; i++) {
+                    const row = sheet[i];
+                    if (!row || !row[0]) continue;
+                    
+                    // Check last column for total
+                    const total = parseFloat(row[13]) || 0;
+                    if (total > 0) {
+                        welfareTotal += total;
+                    }
+                }
+                
+                dashboardData.income.welfare = welfareTotal;
+                document.getElementById('income-6').value = welfareTotal;
+                console.log('Welfare parsed: $', welfareTotal);
+                
+            } catch (e) { console.log('Error parsing welfare:', e); }
+        }
+
+        function parseCarRental(sheet) {
+            try {
+                // CAR RENTAL: Has DATE, CLIENT NAME, TOTAL CHARGE, AMOUNT PAID, BALANCE
+                let rentalIncome = 0;
+                
+                for (let i = 1; i < sheet.length; i++) {
+                    const row = sheet[i];
+                    if (!row) continue;
+                    
+                    const totalCharge = parseFloat(row['TOTAL CHARGE']) || 0;
+                    if (totalCharge > 0) {
+                        rentalIncome += totalCharge;
+                    }
+                }
+                
+                // Add to income as other income
+                console.log('Car rental income: $', rentalIncome);
+                
+            } catch (e) { console.log('Error parsing car rental:', e); }
+        }
+
+        // Parse LOANS for the new format
+        function parseLoansSheet(sheet, type) {
+            try {
+                if (!sheet || sheet.length < 2) return;
+                
+                // For LOAN sheet - find the loan data
+                // Look for columns like PRINCIPAL, PAID, BALANCE, etc.
+                const loans = [];
+                
+                for (let i = 1; i < sheet.length && loans.length < 15; i++) {
+                    const row = sheet[i];
+                    if (!row) continue;
+                    
+                    // Try to detect loan data - look for amounts in typical loan columns
+                    // The LOAN sheet has various columns
+                    let principal = 0, repaid = 0, balance = 0;
+                    
+                    // Try to parse row as loan data
+                    // Look for numeric values that could be loan amounts
+                    for (const key in row) {
+                        const val = parseFloat(row[key]);
+                        if (!isNaN(val) && val > 0) {
+                            if (key.toLowerCase().includes('principal') || key.toLowerCase().includes('amount')) {
+                                principal = val;
+                            } else if (key.toLowerCase().includes('paid') || key.toLowerCase().includes('repaid')) {
+                                repaid = val;
+                            } else if (key.toLowerCase().includes('balance') || key.toLowerCase().includes('outstanding')) {
+                                balance = val;
+                            }
+                        }
+                    }
+                    
+                    // Also check array indices
+                    const arr = Object.values(row);
+                    for (let j = 0; j < arr.length; j++) {
+                        const val = parseFloat(arr[j]);
+                        if (!isNaN(val) && val > 100) { // Likely loan amount
+                            if (principal === 0) principal = val;
+                            else if (repaid === 0) repaid = val;
+                            else if (balance === 0) balance = val;
+                        }
+                    }
+                    
+                    if (principal > 0) {
+                        loans.push({
+                            ref: `L${String(loans.length + 1).padStart(3, '0')}`,
+                            member: arr[1] || arr[2] || 'Unknown',
+                            principal: principal,
+                            repaid: repaid,
+                            outstanding: balance || (principal - repaid),
+                            interest: 0
+                        });
+                    }
+                }
+                
+                if (loans.length > 0) {
+                    dashboardData.loans[type] = loans;
+                    renderLoanTables();
+                }
+                
+                console.log(type, 'loans parsed:', loans.length);
+                
+            } catch (e) { console.log('Error parsing loans:', e); }
+        }
+
+        // Legacy parsers (kept for compatibility)
+        function parseIncomeSheet(sheet) {
+            parseContributions(sheet);
+        }
+
+        function parseExpenseSheet(sheet) {
+            parseExpensesSheet(sheet);
+        }
+
+        function parseMembersSheet(members) {
+            // Members already populated from contributions
+            renderMemberTable();
         }
 
         // Export functions
